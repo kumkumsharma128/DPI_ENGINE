@@ -1,0 +1,19 @@
+name: CI
+on: [push, pull_request]
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: make
+      - name: Unit tests (ASan + UBSan)
+        run: make test
+      - name: Smoke test - single file
+        run: |
+          python3 tools/gen_pcap.py samples/test_dpi.pcap
+          ./dpi_engine samples/test_dpi.pcap --out out.pcap --block-app YouTube
+      - name: Smoke test - folder of files
+        run: |
+          python3 tools/split_pcap.py samples/test_dpi.pcap parts 3
+          ./dpi_engine parts --out-dir filtered --block-app YouTube
